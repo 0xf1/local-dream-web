@@ -1,0 +1,23 @@
+venv/
+ENV/
+env/
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local configuration files (excluding personal settings)
+config_user.py
+
+# Folder for temporary files and generated content
+temp/
+
+# IDE and code editor-specific settings
+.clinerules
+.idea/
+.vscode/
+
+# System files
+Thumbs.db
+desktop.ini

@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2017",
+    "checkJs": true,
+    "strict": false,          
+    "strictNullChecks": false 
+  },
+  "include": [
+    "js/**/*"
+  ],
+  "exclude": [
+    ".vscode",
+    "node_modules",
+    "dist"
+  ]
+}

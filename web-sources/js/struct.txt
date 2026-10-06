@@ -1,0 +1,53 @@
+src/
+├── index.html                    # Main HTML page
+│
+└── css/
+    └── style.css                 # Application styles
+
+└── js/
+    ├── config.js                 # Constants, URLs, states
+    ├── dom.js                    # DOM element cache, DOM manipulation
+    ├── main.js                   # Entry point — application initialization
+    ├── state.js                  # Global application state
+    ├── struct.txt                # Project structure (this file)
+    ├── types.jsdoc.js            # JSDoc types and descriptions
+
+    ├── canvas/                   # Canvas and image handling
+    │   ├── crop.js               # Crop area logic
+    │   ├── imageUpload.js        # Image upload / reset
+    │   ├── magnifier.js          # Magnifier, magnified brush ring, custom cursor
+    │   ├── maskBuilder.js        # Mask generation (B&W, feathered)
+    │   └── squareUtils.js        # Square conversion / restoration
+
+    ├── editor/                   # Editor and visual effects
+    │   ├── drawing.js            # Drawing / erasing / Undo / Redo
+    │   ├── editorState.js        # Editor reset / load base image
+    │   ├── layers.js             # Layer management (mask/paint)
+    │   └── visualFilters.js      # Layer opacity / blur
+
+    ├── generation/               # Content generation / AI
+    │   ├── api.js                # HTTP requests to CONTROL_URL / GENERATION_URL
+    │   ├── models.js             # Catalog loading, applying defaults
+    │   ├── generation.js         # Generation start/stop, streaming
+    │   ├── resultCompositing.js  # Mask feather/blend/brightness compositing
+    │   ├── resultDecoders.js     # Decode base64/raw-RGB server images onto canvas
+    │   ├── generationEvents.js   # SSE event handler (progress/complete/error)
+    │   ├── imageLayerMerge.js    # Merge original+paint layer, crop, redraw
+    │   └── tokens.js             # Prompt token counting
+
+    ├── persistence/              # Session persistence
+    │   ├── sessionSerializer.js  # Img2Img: build snapshot (serialization)
+    │   ├── sessionRestorer.js    # Img2Img: restore snapshot (deserialization)
+    │   ├── imageIoUtils.js       # dataUrl <-> Image/ImageData helpers
+    │   └── sessionFileIO.js      # Download/upload session .json file
+
+    ├── ui/                       # UI controls and interface elements
+    │   ├── debug.js              # Debug previews (canvas/base64)
+    │   ├── resultControls.js     # Download / SendToImg2Img / ShowOriginal
+    │   ├── resultSliders.js      # Feather/blend/blur/brightness/contrast sliders
+    │   ├── sessionControls.js    # Session management
+    │   ├── sizeControls.js       # Size controls
+    │   └── sliderTouch.js        # Range sliders: stop page scrolls changing values
+
+    └── utils/                    # Helper utilities
+        └── misc.js               # Helper functions (pad, debounce, etc.)

@@ -1,0 +1,846 @@
+/* ==========================================
+   DESIGN TOKENS
+   ========================================== */
+:root {
+    /* Surfaces */
+    --bg: #121212;
+    --surface: #1e1e1e;
+    --surface-raised: #252525;
+    --surface-input: #2d2d2d;
+    --surface-deep: #151515;
+    --surface-deepest: #1a1a1a;
+
+    /* Borders */
+    --border: #333;
+    --border-strong: #444;
+    --border-hover: #555;
+
+    /* Text */
+    --text: #e0e0e0;
+    --text-bright: #ffffff;
+    --text-dim: #aaa;
+    --text-dim-alt: #a0a0a0;
+    --text-muted: #888;
+    --text-disabled: #777;
+    --text-faintest: #666;
+    --text-inverse: #000;
+
+    /* Brand and states */
+    --accent: #03dac6;
+    --accent-hover: #01bfae;
+    --primary: #6200ee;
+    --primary-hover: #3700b3;
+    --danger: #ff4d4d;
+    --danger-solid: #c62828;
+    --danger-deep: #832121;
+    --success: #4caf50;
+    --success-solid: #2e7d32;
+    --warning-solid: #e65100;
+
+    /* Range slider geometry. The thumb is centred on the track by an offset
+       derived from these two values, so they are changed together - never as
+       a hand written pixel pair, which is how the phone thumb ended up
+       sitting above the centre. */
+    --range-track-size: 4px;
+    --range-thumb-size: 14px;
+}
+
+/* ==========================================
+   BOX SIZING
+   ========================================== */
+
+/* Every element is measured including padding and border. Several controls are
+   declared as `width: 100%` plus their own padding (the generic `button` rule
+   below all), which used to push them exactly that much past the right edge of
+   their parent - the most visible overflow bug on narrow screens. */
+*, *::before, *::after { box-sizing: border-box; }
+
+/* The loupe draws into a 150x150 bitmap, so its border must stay outside of it. */
+.canvas-magnifier { box-sizing: content-box; }
+
+/* ==========================================
+   LAYOUT UTILITIES
+   Extracted from inline styles in the markup.
+   ========================================== */
+
+/* Page header: title on the left, actions on the right */
+.page-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+.page-header h1 { margin: 0; text-align: left; }
+.header-actions { display: flex; flex-wrap: wrap; gap: 15px; align-items: center; }
+
+/* Horizontal row of buttons centred under the result canvas */
+.btn-row { display: flex; flex-wrap: wrap; gap: 10px; width: 100%; justify-content: center; }
+
+/* Checkbox plus its label, used for the boolean switches */
+.switch-row { display: flex; align-items: center; margin-top: 25px; }
+.check-control { width: auto; cursor: pointer; accent-color: var(--accent); }
+.check-label {
+    margin: 0; color: var(--text-dim); font-size: 13px;
+    cursor: pointer; user-select: none;
+}
+/* Label for a checkbox that already inherits its size from .tool-group */
+.check-label-plain { cursor: pointer; user-select: none; }
+
+/* Separator above a settings group */
+.settings-row {
+    width: 100%;
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+    margin-top: 5px;
+}
+
+/* Token counter sitting under a prompt textarea */
+.token-counter {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: -3px;
+    text-align: right;
+}
+
+/* Caption above a size slider */
+.size-label { font-size: 12px; color: gray; margin-top: 8px; }
+
+/* Stacked canvas layers. Each modifier sets its own stacking order. */
+.canvas-layer { position: absolute; top: 0; left: 0; }
+.canvas-layer-paint { z-index: 4; }
+.canvas-layer-mask { z-index: 5; }
+.canvas-layer-crop { z-index: 6; pointer-events: none; }
+
+/* Generic flex helpers */
+.grow { flex: 1; }
+.full-width { width: 100%; }
+
+/* Img2Img action row above the editor canvas */
+.img2img-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 5px 0 12px 0; }
+.btn-reset-all { max-width: 140px; }
+
+/* Row of reference image thumbnails */
+.ref-images { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; margin: 5px 0 12px 0; }
+.ref-images canvas { max-width: 100%; height: auto; }
+
+/* Stacked column holding the editor canvas and the brush panel */
+.canvas-workspace { display: flex; flex-direction: column; gap: 12px; align-items: center; position: relative; }
+
+/* Brush mode dropdown keeps a fixed width so the panel does not jump */
+.tool-select { width: 130px; padding: 5px; }
+
+/* Tool group that shares the free space of its row (sliders) */
+.tool-group-grow { flex: 1 1 0; min-width: 0; }
+
+/* Slider labels: fixed basis on wide screens, free to shrink on narrow ones */
+.tool-label-s { flex: 0 0 80px; }
+.tool-label-m { flex: 0 0 165px; }
+.tool-label-l { flex: 0 0 220px; }
+
+/* Row of layer tools (eraser, undo, redo, clear, crop) */
+.tool-actions { margin-top: 5px; gap: 8px; }
+.tool-actions-grid { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
+
+/* ==========================================
+   CONTROLS
+   ========================================== */
+
+/* One row of a result slider: fixed label, fluid range, reset button */
+.slider-row { display: flex; align-items: center; gap: 10px; }
+/* Deliberately does not reset margin - the base label rule applies */
+.slider-label { flex: 0 0 130px; color: var(--text-dim); font-size: 13px; }
+.slider-input { flex: 1 1 0; min-width: 0; }
+
+/* Native range inputs. The dark track and thumb blend into the theme
+   instead of the default light widget. */
+input[type="range"] {
+    accent-color: var(--accent);
+    /* Required on the input, not just on the thumb. Without it the engine
+       keeps laying out its own track and overrides the custom one, and the
+       thumb is then positioned against the native track - which is what put
+       the circle off centre. */
+    -webkit-appearance: none;
+    appearance: none;
+    /* appearance: none removes the native widget painting and exposes the UA
+       field background underneath it, which is white. Without this the slider
+       sits in a bright white box in the middle of the dark theme. */
+    background: transparent;
+    height: 22px;
+    cursor: pointer;
+    /* A range is a flex child in several rows, and its intrinsic width would
+       otherwise act as a minimum and push the row past the panel edge. */
+    min-width: 0;
+    /* Hand vertical panning back to the page, so a swipe that starts on a
+       slider scrolls instead of only moving the thumb. This decides who owns
+       the pan; the value Chrome commits on touch is undone by ui/sliderTouch.js,
+       because by the time this property is consulted the value has already
+       jumped. */
+    touch-action: pan-y;
+    /* A long press must not start a native drag of the control. */
+    user-select: none;
+    -webkit-user-drag: none;
+    -webkit-touch-callout: none;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+    height: var(--range-track-size);
+    background: var(--surface-input);
+    border-radius: 2px;
+}
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width:  var(--range-thumb-size);
+    height: var(--range-thumb-size);
+    /* (track - thumb) / 2, so the circle sits on the centre of the track for
+       any pair of sizes. Written out as a literal it is correct only for the
+       one size it was written for. */
+    margin-top: calc((var(--range-track-size) - var(--range-thumb-size)) / 2);
+    background: var(--accent);
+    border: none;
+    border-radius: 50%;
+}
+input[type="range"]::-moz-range-track {
+    height: var(--range-track-size);
+    background: var(--surface-input);
+    border-radius: 2px;
+}
+/* Gecko centres the thumb on the track on its own, no offset needed. */
+input[type="range"]::-moz-range-thumb {
+    width:  var(--range-thumb-size);
+    height: var(--range-thumb-size);
+    background: var(--accent);
+    border: none;
+    border-radius: 50%;
+}
+input[type="range"]:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 3px var(--surface);
+}
+
+/* Disabled slider: the accent thumb drops to a neutral grey, so the size
+   controls greyed out for a model without dit_kind read as inactive.
+   appearance: none removed the browser's own disabled painting, which used to
+   be what conveyed the state.
+
+   The track deliberately keeps the enabled fill. --surface-raised looks like a
+   plausible dimming, but it is the panel background of .advanced-spoiler,
+   .img2img-section and .advanced-result-spoiler, and a control surface that
+   matches the surface behind it is simply gone. --surface-input is the
+   control fill token here, and the grey thumb carries the state on its own. */
+input[type="range"]:disabled { cursor: not-allowed; }
+input[type="range"]:disabled::-webkit-slider-runnable-track {
+    background: var(--surface-input);
+}
+input[type="range"]:disabled::-webkit-slider-thumb {
+    background: var(--text-muted);
+}
+input[type="range"]:disabled::-moz-range-track {
+    background: var(--surface-input);
+}
+input[type="range"]:disabled::-moz-range-thumb {
+    background: var(--text-muted);
+}
+/* The label dims with its own control, for any slider row in the markup.
+   Colour alone would be invisible to some users, so the reason is also on the
+   label's title attribute. */
+label:has(+ input[type="range"]:disabled) { color: var(--text-faintest); }
+
+/* Keyboard focus indicator. Uses :focus-visible so it appears for tab
+   navigation and is skipped for plain mouse clicks. */
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Small cross button that resets a slider to its default */
+.reset-btn {
+    flex: 0 0 auto;
+    background: none;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    font-size: 11px;
+    padding: 0 5px;
+    width: auto;
+}
+.reset-btn:hover { color: var(--text-bright); }
+
+/* Compact action buttons in the editor and result toolbars */
+.btn-capped { max-width: 200px; }
+.btn-neutral { background: var(--border-strong); }
+.btn-danger { background: var(--danger-solid); }
+.btn-deep-danger { background: var(--danger-deep); }
+.btn-success { background: var(--success-solid); color: var(--text-bright); }
+.btn-warning { background: var(--warning-solid); color: var(--text-bright); }
+.btn-accent { background: var(--accent); color: var(--text-inverse); }
+.btn-strong { background: var(--primary); color: var(--text-bright); }
+
+/* Generate button while a request is running. The explicit hover rules are
+   needed because the generic button:hover would otherwise win over the
+   plain class. */
+.btn-stop { background: var(--danger-solid); }
+.btn-stop:hover:not(:disabled) { background: var(--danger-solid); }
+
+/* Generate button while the model is being restarted after a stop */
+.btn-busy { background: var(--warning-solid); }
+.btn-busy:hover:not(:disabled) { background: var(--warning-solid); }
+
+/* General page and container styles */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+}
+.container {
+    max-width: 800px;
+    width: 100%;
+    background: var(--surface);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    box-sizing: border-box;
+}
+h1 { color: var(--text-bright); margin-top: 0; text-align: center; }
+.section { margin-bottom: 20px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 14px; color: var(--text-dim); }
+
+/* Styles for input fields, lists, and text areas */
+input[type="text"], input[type="number"], select, textarea {
+    width: 100%; padding: 10px; background: var(--surface-input); border: 1px solid var(--border-strong);
+    border-radius: 6px; color: var(--text-bright); box-sizing: border-box; font-size: 14px;
+}
+textarea { height: 80px; resize: vertical; }
+
+/* General styles for main buttons */
+button {
+    width: 100%; padding: 12px; background: var(--primary); color: white; border: none;
+    border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s;
+}
+button:hover:not(:disabled) { background: var(--primary-hover); }
+button:disabled { background: var(--border-strong); color: var(--text-disabled); cursor: not-allowed; }
+.status-text { font-size: 13px; color: var(--accent); margin: 5px 0 0 0; }
+
+/* Generation progress bar */
+.progress-container { background: var(--surface-input); border-radius: 6px; margin: 15px 0; overflow: hidden; }
+.progress-bar {
+    background: var(--accent); color: var(--text-inverse); text-align: center; padding: 5px;
+    font-weight: bold; width: 0%; transition: width 0.1s; font-size: 12px;
+    white-space: nowrap;
+}
+
+/* Display area for the final result */
+.result-section {
+    margin-top: 25px; border: 2px dashed var(--border-strong); border-radius: 8px; min-height: 350px;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    background: var(--surface-deep); position: relative; gap: 15px; padding: 15px;
+    position: relative; /* Required so that absolute inside zzz2 is positioned against this box */
+}
+canvas.zoomable-canvas {
+    max-width: 100%; max-height: 500px; border-radius: 6px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5); display: block;
+    /* Anchors the temporary "original" canvas stacked on top of the result. */
+    position: relative; z-index: 10; cursor: zoom-in;
+}
+#placeholderText { color: var(--text-faintest); }
+
+/* Sliders below the generated image */
+.result-sliders {
+    display: flex; flex-direction: column; gap: 8px;
+    width: 100%; max-width: 500px; margin-top: 15px;
+}
+
+/* Advanced settings spoiler */
+.advanced-spoiler {
+    background: var(--surface-raised); padding: 12px; border-radius: 6px; border: 1px solid var(--border); margin-top: 20px;
+}
+.advanced-spoiler summary { font-weight: bold; cursor: pointer; color: var(--accent); user-select: none; }
+
+/* Img2Img / Editor workspace container */
+.img2img-section {
+    background: var(--surface-raised); padding: 15px; border-radius: 6px; border: 1px dashed var(--border-strong);
+}
+
+/* Brush toolbar (two-row grid) */
+.brush-panel {
+    display: flex; flex-direction: column; gap: 10px; background: var(--surface-deepest);
+    padding: 15px; border-radius: 8px; border: 1px solid var(--border); width: 100%; box-sizing: border-box;
+}
+.tool-row { display: flex; flex-wrap: wrap; gap: 15px; align-items: center; justify-content: center; }
+/* min-width: 0 lets a tool group shrink below the width its label and slider
+   would otherwise demand, which is what pushes the row outside the panel. */
+.tool-group { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.tool-group label { margin: 0; white-space: nowrap; min-width: 0; }
+/* A range inside a tool group shares the space left by its label. `auto` as the
+   basis keeps the intrinsic size on wide screens and `min-width: 0` allows the
+   slider to shrink on narrow ones. */
+.tool-group input[type="range"] { flex: 1 1 auto; }
+.tool-group input[type="color"] {
+    width: 40px; height: 30px; padding: 0; background: none; border: none; cursor: pointer;
+}
+
+/* Small tool buttons (eraser, undo, redo, clear) */
+.tool-btn {
+    padding: 6px 14px; background: var(--border-strong); color: var(--text-bright); border: none; border-radius: 4px;
+    cursor: pointer; font-size: 13px; font-weight: 500; transition: background 0.1s;
+}
+.tool-btn:hover { background: var(--border-hover); }
+.tool-btn.active-tool { background: var(--accent); color: var(--text-inverse); font-weight: bold; }
+
+/* Multi-layer editor canvases (stacked pixel-perfectly on top of each other) */
+.canvas-container-wrapper {
+    position: relative;
+    background: var(--surface-deep); border: 1px solid var(--border-strong); border-radius: 6px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+}
+/* Without this the browser claims the drag for panning the page and the mask
+   or paint stroke is cut off after the first event. */
+.canvas-container-wrapper,
+#bgImageCanvas, #paintDrawingCanvas, #maskDrawingCanvas, #cropOverlayCanvas {
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+#bgImageCanvas { display: block; max-width: 100%; max-height: 500px; }
+#paintDrawingCanvas, #maskDrawingCanvas, #cropOverlayCanvas { max-width: 100%; max-height: 500px; transition: opacity 0.1s; }
+
+/* Loading spinner animation */
+.spinner {
+    border: 4px solid rgba(255,255,255,0.1); width: 50px; height: 50px;
+    border-radius: 50%; border-left-color: var(--accent); animation: spin 1s linear infinite;
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+/* Full-screen image viewing modal (Lightbox) */
+.lightbox-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 99999 !important; /* Maximum priority */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: zoom-out;
+}
+/* Modified full-screen view with forced upscaling of small images */
+.lightbox-overlay img {
+  min-width: 60vw; /* Forces the image to stretch to at least 60% of the screen width */
+  max-width: 95vw; /* Prevents the image from extending beyond the screen width */
+  max-height: 95vh; /* Prevents the image from extending beyond the screen height */
+  object-fit: contain; /* Preserves the correct aspect ratio (does not squash) */
+
+  /* Enable high-quality anti-aliasing instead of pixelation */
+  image-rendering: auto;
+
+  border-radius: 6px;
+  box-shadow: 0 0 45px rgba(0,0,0,0.95);
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* Dynamic brush size indicator. Hidden while the loupe is on: the loupe paints
+   its own ring, magnified with the pixels, so this one would double up. */
+.brush-cursor {
+    position: absolute;
+    border: 1px solid var(--text-bright);
+    border-radius: 50%;
+    pointer-events: none; /* Lets clicks pass through */
+    display: none;
+    z-index: 999;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 4px rgba(0,0,0,0.6);
+}
+
+/* Hide the system cursor across the entire canvas workspace */
+.canvas-container-wrapper, #maskDrawingCanvas, #paintDrawingCanvas, #cropOverlayCanvas {
+    cursor: none !important;
+}
+
+/* Smooth transition for token counters to eliminate flickering while typing */
+#tokenCounter, #negativeTokenCounter {
+    transition: opacity 0.3s ease-in-out; /* Smooth fade-out over 300 milliseconds */
+}
+
+/* Screen magnifier element */
+.canvas-magnifier {
+    position: absolute;
+    width: 150px;          /* Approximately 2–2.5 cm on medium-sized screens */
+    height: 150px;
+    border: 3px solid var(--accent);
+    border-radius: 50%;
+    cursor: none;          /* Hide the system cursor inside the magnifier */
+    pointer-events: none;  /* Pass clicks through the magnifying glass to the canvas */
+    z-index: 998;          /* Just below the custom brushCursor indicator */
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
+    display: none;         /* Hidden by default */
+    background-repeat: no-repeat;
+    background-color: var(--surface-deep);
+}
+
+/* Active crop mode (green style) */
+.tool-btn.active-crop {
+    background: var(--success) !important;
+    color: var(--text-inverse) !important;
+    font-weight: bold;
+}
+
+/* Override cursor for Crop mode with higher priority */
+.canvas-container-wrapper.crop-hunting,
+.canvas-container-wrapper.crop-hunting canvas,
+.canvas-container-wrapper.crop-hunting #maskDrawingCanvas,
+.canvas-container-wrapper.crop-hunting #cropOverlayCanvas,
+.canvas-container-wrapper.crop-hunting #paintDrawingCanvas {
+    cursor: crosshair !important;
+}
+
+/* Style for the active Original button */
+#showOriginalBtn:active {
+    background: var(--accent) !important;
+    color: var(--text-inverse) !important;
+}
+
+/* Size fix for the original's temporary canvas (Original button) */
+#tempOriginalCanvas {
+    max-width: 100%;
+    max-height: 500px; /* Must match .zoomable-canvas */
+    width: auto;
+    height: auto;
+    border-radius: 6px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    pointer-events: none; /* To let clicks pass through it */
+}
+
+.advanced-result-spoiler {
+    background: var(--surface-raised); padding: 7px; border-radius: 6px; border: 1px solid var(--border);
+}
+.advanced-result-spoiler summary { font-weight: bold; cursor: pointer; color: var(--accent); user-select: none;     padding-bottom: 5px;}
+
+.link-button {
+    width: auto;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 14px;
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    cursor: pointer;
+}
+.link-button:hover {
+    text-decoration: underline;
+}
+
+/* ==========================================
+   MODAL DIALOG STYLES (Save Session)
+   ========================================== */
+/* Darken the background to fill the entire screen */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7); /* Translucent black */
+    backdrop-filter: blur(4px);    /* Slight background blur */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+/* The modal window itself */
+.modal-content {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    font-family: sans-serif;
+    color: var(--text);
+}
+
+/* Window title */
+.modal-title {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--text-bright);
+    letter-spacing: 0.5px;
+}
+
+/* Container with a list of options */
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+/* Line with checkbox */
+.checkbox-item {
+    display: flex;
+    gap: 12px;
+    cursor: pointer;
+    padding: 6px 0;
+}
+
+/* Styling checkboxes and captions */
+.checkbox-item input[type="checkbox"] {
+    margin: 0; /* Removes default browser indentation */
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.checkbox-item label {
+    cursor: pointer;
+    font-size: 14px;
+    user-select: none;
+    line-height: 1;
+}
+
+/* Block with buttons at the bottom */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* General styles for buttons in the dialog */
+.modal-actions button {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    width: auto;
+}
+
+/* Main button (Save) */
+.btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+}
+
+.btn-primary:hover {
+    background: var(--accent-hover);
+    box-shadow: 0 0 12px rgba(3, 218, 198, 0.4);
+}
+
+/* Cancel button */
+.btn-secondary {
+    background: transparent;
+    color: var(--text-dim-alt);
+    border: 1px solid var(--border-strong) !important;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-bright);
+    border-color: var(--text-faintest) !important;
+}
+
+/* ==========================================
+   NOTES WIDGET STYLES (Draggable Notepad)
+   ========================================== */
+#notesWidget {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    width: 350px;
+    max-width: calc(100vw - 40px);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+    z-index: 999;
+    display: none;
+    flex-direction: column;
+}
+
+#notesWidget.visible {
+    display: flex;
+}
+
+#notesHeader {
+    background: var(--surface-raised);
+    padding: 10px 15px;
+    border-bottom: 1px solid var(--border);
+    cursor: move;
+    user-select: none;
+    /* Stop the browser from turning a header drag into a page scroll. */
+    touch-action: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#notesHeader h3 {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-bright);
+    font-weight: bold;
+}
+
+#notesCloseBtn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0 5px;
+    width: auto;
+}
+
+#notesCloseBtn:hover {
+    color: var(--danger);
+}
+
+#notesContent {
+    padding: 15px;
+}
+
+#notesTextarea {
+    width: 100%;
+    min-height: 200px;
+    background: var(--surface-input);
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+#notesTextarea:focus {
+    border-color: var(--accent);
+}
+
+/* ==========================================
+   TOUCHSCREEN AND NARROW SCREEN ADAPTATION
+   ========================================== */
+
+/* A finger needs a target clearly bigger than a mouse pointer, and touch
+   devices have no hover, so controls sized for a mouse are unusable there. */
+@media (hover: none) and (pointer: coarse) {
+    /* A long press on a phone starts selecting a button's label or dragging
+       an image, and neither reads as anything but a glitch here. Selection is
+       off for the whole page, then switched back on where choosing text is
+       the actual task: the prompts, the seed and the notepad all have to stay
+       editable and copyable, callout included, or pasting into them breaks. */
+    body {
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+    }
+    textarea, select, input:not([type="range"]), [contenteditable] {
+        -webkit-user-select: text;
+        user-select: text;
+        -webkit-touch-callout: default;
+    }
+    /* The editor stack sets this unconditionally, so drawing is unaffected by
+       the page wide rule above. */
+    .canvas-container-wrapper,
+    #bgImageCanvas, #paintDrawingCanvas, #maskDrawingCanvas, #cropOverlayCanvas {
+        touch-action: none;
+    }
+
+    /* Android flashes a grey rectangle on every tap - it is noise, not feedback. */
+    button, .link-button, summary, label, .tool-btn {
+        -webkit-tap-highlight-color: transparent;
+    }
+    /* Drops the 300ms click delay without disabling pinch zoom on the page. */
+    button, .link-button, summary, label { touch-action: manipulation; }
+
+    /* Bigger thumb for a finger, but not so big that it fills the row. Only
+       the token changes: the centring offset and the track follow
+       automatically, so the circle cannot drift off the middle of the track
+       the way a hand written pixel pair did. The input keeps its height, so
+       the touch target does not shrink with the thumb. */
+    :root { --range-thumb-size: 20px; }
+    input[type="range"] { height: 34px; }
+
+    .tool-btn { padding: 12px 14px; font-size: 14px; }
+    .reset-btn { font-size: 18px; padding: 0 12px; }
+    .check-control, .checkbox-item input[type="checkbox"] { width: 22px; height: 22px; }
+    .tool-group input[type="color"] { width: 52px; height: 40px; }
+    .link-button { font-size: 15px; }
+    .advanced-spoiler summary, .advanced-result-spoiler summary { padding: 6px 0; }
+}
+
+/* Phones. Padding is the most expensive thing on a small screen, so the panels
+   take the full width and rows stop insisting on staying on a single line. */
+@media (max-width: 768px) {
+    /* Safe area insets keep the panel clear of notches and gesture bars. */
+    body {
+        padding: 4px;
+        padding-left:   max(4px, env(safe-area-inset-left));
+        padding-right:  max(4px, env(safe-area-inset-right));
+        padding-bottom: max(4px, env(safe-area-inset-bottom));
+    }
+    .container { padding: 10px; border-radius: 8px; }
+
+    h1 { font-size: 20px; }
+    .page-header { gap: 8px; margin-bottom: 12px; }
+    .header-actions { justify-content: center; gap: 10px; }
+
+    .section { margin-bottom: 12px; }
+    .grid-2 { grid-template-columns: 1fr; gap: 10px; }
+    .switch-row { margin-top: 12px; }
+    .progress-container { margin: 10px 0; }
+
+    .img2img-section,
+    .brush-panel,
+    .advanced-spoiler,
+    .advanced-result-spoiler { padding: 8px; }
+
+    /* Keep the generated image and the brush panel on one screen. */
+    .result-section { min-height: 180px; margin-top: 15px; padding: 8px; }
+    canvas.zoomable-canvas { max-height: 55vh; }
+    #bgImageCanvas, #paintDrawingCanvas, #maskDrawingCanvas, #cropOverlayCanvas { max-height: 60vh; }
+
+    /* One control per line: a phone is too narrow for a label beside a slider. */
+    .tool-row { gap: 8px; }
+    .tool-group { flex: 1 1 100%; }
+    .tool-group label { white-space: normal; }
+    .tool-label-s, .tool-label-m, .tool-label-l { flex: 0 1 auto; }
+    .tool-group input[type="range"] { flex: 1 1 0; width: auto; }
+    .tool-select { flex: 1 1 auto; width: auto; }
+
+    /* Two tool buttons per line instead of four squeezed together. */
+    .tool-actions-grid .tool-btn, .tool-actions > .tool-btn { flex: 1 1 calc(50% - 4px); }
+
+    /* Standalone sliders (denoise, steps, cfg) stretch to the full width. */
+    input[type="range"] { width: 100%; }
+
+    /* width: auto lets the buttons size to their text and share the line,
+       instead of each claiming a full row of its own. */
+    .img2img-toolbar button { flex: 1 1 auto; width: auto; max-width: 100%; }
+    .btn-row .btn-capped { flex: 1 1 100%; max-width: 100%; }
+    .slider-label { flex: 0 0 110px; font-size: 12px; }
+
+    #notesWidget { top: 8px; right: 8px; width: calc(100vw - 16px); max-width: none; }
+    #notesContent { padding: 10px; }
+
+    .modal-overlay { padding: 12px; }
+    .modal-content { padding: 16px; }
+    .checkbox-group { gap: 8px; margin-bottom: 16px; }
+}

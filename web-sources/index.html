@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#121212">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23121212'/><path d='M16 5l3.6 8.2 8.4.6-6.4 5.5 2 8.3L16 22.8 8.4 27.6l2-8.3L4 13.8l8.4-.6z' fill='%2303dac6'/></svg>">
+    <link rel="stylesheet" href="css/style.css">
+    <title>Local Dream Web</title>
+</head>
+<body>
+<div class="container">
+
+    <div class="page-header">
+        <h1>Local Dream Web</h1>
+
+        <div class="header-actions">
+            <button id="saveSessionShowDialog" type="button" class="link-button" hidden>
+                [ Save session ]
+            </button>
+            <button id="loadSessionBtn" type="button" class="link-button" hidden>
+                [ Load session ]
+            </button>
+            <input id="loadSessionFile" type="file" accept="application/json,.json" hidden>
+
+            <button id="notesBtn" type="button" class="link-button">
+                [ Notes ]
+            </button>
+        </div>
+    </div>
+
+    <!-- Model selection -->
+    <div class="section">
+        <label for="modelSelect">Model:</label>
+        <select id="modelSelect">
+            <option value="">Loading model list...</option>
+        </select>
+        <button type="button" id="loadModelBtn" disabled hidden>Activate</button>
+        <p id="modelStatus" class="status-text">Status: Checking backend...</p>
+    </div>
+
+    <div id="modelWorkspace" style="display: none;">
+
+        <!-- Prompts -->
+        <div class="section">
+            <label for="prompt">Prompt:</label>
+            <textarea id="prompt" placeholder="1girl, masterpiece, cinematic lighting..."></textarea>
+            <!-- Tocken counter -->
+            <p id="tokenCounter" class="token-counter">Tokens: 0 / 77</p>
+
+            <label for="negativePrompt">Negative Prompt:</label>
+            <textarea id="negativePrompt" placeholder="low quality, blurry, deformed..."></textarea>
+            <!-- Token counter for negative prompt -->
+            <p id="negativeTokenCounter" class="token-counter">Tokens: 0 / 77</p>
+
+        </div>
+
+        <!-- Img2Img Function and Multi-Layer Editor -->
+        <label id="editModeLabel">Img2Img:</label>
+        <div class="section img2img-section">
+            <div class="img2img-toolbar">
+                <input type="file" id="img2imgFile" accept="image/*" hidden>
+                <button id="uploadImgBtn" type="button" class="btn-capped btn-neutral">Select image</button>
+                <input type="file" id="img2imgRefFile" accept="image/*" hidden>
+                <button id="uploadRefImgBtn" type="button" class="btn-capped btn-neutral">Add ref image</button>
+                <button id="clearImgBtn" type="button" class="btn-danger btn-reset-all" style="display: none;">Reset all</button>
+            </div>
+
+            <div id="refImagesContainer" class="ref-images">
+
+            </div>
+
+            <!-- Workspace -->
+            <div id="canvasWorkspace" class="canvas-workspace" style="display: none;">
+                <div class="canvas-container-wrapper">
+                    <canvas id="bgImageCanvas"></canvas>
+                    <canvas id="paintDrawingCanvas" class="canvas-layer canvas-layer-paint"></canvas>
+                    <canvas id="maskDrawingCanvas" class="canvas-layer canvas-layer-mask"></canvas>
+                    <canvas id="cropOverlayCanvas" class="canvas-layer canvas-layer-crop"></canvas>
+                    <div id="brushCursor" class="brush-cursor"></div>
+                </div>
+
+                <!-- Toolbar -->
+                <div class="brush-panel">
+                    <div class="tool-row">
+                        <div class="tool-group">
+                            <label for="layerMode">Brush mode:</label>
+                            <select id="layerMode" class="tool-select">
+                                <option value="mask">Masc</option>
+                                <option value="paint">Drawing</option>
+                            </select>
+                        </div>
+                        <div class="tool-group">
+                            <input type="checkbox" id="magnifierCheckbox" class="check-control">
+                            <label for="magnifierCheckbox" class="check-label-plain">Magnifier</label>
+                        </div>
+
+                        <div class="tool-group" id="colorPickerGroup" style="display: none;">
+                            <label for="brushColor">Color:</label>
+                            <input type="color" id="brushColor" value="#ffffff">
+                        </div>
+                        <div class="tool-group">
+                            <label for="brushSize" class="tool-label-s">Size: <span id="brushSizeVal">50</span>px</label>
+                            <input type="range" id="brushSize" min="5" max="200" value="50">
+                        </div>
+                    </div>
+
+                    <!-- Drawing and Mask Sliders -->
+                    <div class="tool-row settings-row" id="paintSettingsRow" style="display: none;">
+                        <div class="tool-group tool-group-grow">
+                            <label for="layerOpacity" class="tool-label-m">Layer transparency: <span id="layerOpacityVal">1.0</span></label>
+                            <input type="range" id="layerOpacity" min="0.1" max="1.0" step="0.01" value="1.0">
+                        </div>
+                        <div class="tool-group tool-group-grow">
+                            <label for="layerBlur" class="tool-label-m">Layer blurring: <span id="layerBlurVal">0</span>px</label>
+                            <input type="range" id="layerBlur" min="0" max="30" step="0.01" value="0">
+                        </div>
+                    </div>
+
+                    <div class="tool-row settings-row" id="maskSettingsRow">
+                        <div class="tool-group tool-group-grow">
+                            <label for="maskOpacity" class="tool-label-l">Mask display transparency: <span id="maskOpacityVal">0.5</span></label>
+                            <input type="range" id="maskOpacity" min="0.1" max="0.9" step="0.01" value="0.5">
+                        </div>
+                    </div>
+
+                    <div class="tool-row tool-actions">
+                        <div class="tool-actions-grid">
+                            <button id="eraserBtn" type="button" class="tool-btn grow">Eraser</button>
+                            <button id="undoBtn" type="button" class="tool-btn grow">Undo</button>
+                            <button id="redoBtn" type="button" class="tool-btn grow">Redo</button>
+                            <button id="clearLayerBtn" type="button" class="tool-btn btn-deep-danger grow">Clear layer</button>
+                        </div>
+                        <button id="cropModeBtn" type="button" class="tool-btn btn-success">Visible Area</button>
+                        <button id="clearCropBtn" type="button" class="tool-btn btn-neutral" style="display: none;">Reset Visible Area</button>
+                    </div>
+                </div>
+
+                <div class="full-width">
+                    <label for="denoiseStrength">Denoise Strength: <span id="denoiseVal">0.6</span></label>
+                    <input type="range" id="denoiseStrength" min="0.1" max="1.0" step="0.01" value="0.6">
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced -->
+        <details class="advanced-spoiler">
+            <summary>Advanced</summary>
+            <div class="section grid-2" style="margin-top: 15px;">
+                <div>
+                    <label for="samplerSelect">Sampler:</label>
+                    <select id="samplerSelect">
+                        <option value="dpm">DPM++ 2M</option>
+                        <option value="dpm_sde">DPM++ 2M SDE</option>
+                        <option value="euler_a">Euler A (Ancestral)</option>
+                        <option value="euler">Euler</option>
+                        <option value="lcm">LCM (Fast)</option>
+                    </select>
+                </div>
+                <div class="switch-row">
+                    <input type="checkbox" id="karrasCheckbox" checked style="width: auto; margin-right: 10px; cursor: pointer;">
+                    <label for="karrasCheckbox" style="margin: 0; cursor: pointer;">Karras</label>
+                </div>
+
+                <div>
+                    <div>
+                        <label for="steps">Steps: <span id="stepsVal">20</span></label>
+                        <input type="range" id="steps" min="1" max="50" value="20">
+                    </div>
+                                <div>
+                        <label for="cfg">CFG Scale: <span id="cfgVal">7.5</span></label>
+                        <input type="range" id="cfg" min="1" max="20" step="0.5" value="7.5">
+                    </div>
+                </div>
+
+                <!-- Size settings -->
+                <div class="slider-container" style="display: flex; flex-direction: column; width: 100%;">
+                    <div style="font-size: 14px; font-weight: 500;">
+                        Image size: <span id="sizeSummary" style="display: inline-block;">1024x1024</span>
+                    </div>
+
+                    <!-- Width Slider -->
+                    <label for="widthSlider" class="size-label" title="Set by the selected model">Width</label>
+                    <input type="range" id="widthSlider" class="full-width" min="512" max="2048" step="64" value="1024">
+
+                    <!-- Height Slider -->
+                    <label for="heightSlider" class="size-label" title="Set by the selected model">Height</label>
+                    <input type="range" id="heightSlider" class="full-width" min="512" max="2048" step="64" value="1024">
+                </div>
+
+                <div>
+                    <label for="seed">Seed:</label>
+                    <input type="number" id="seed" placeholder="-1 (Random)" value="-1">
+                </div>
+
+                <!-- Reset model settings -->
+                <div class="switch-row">
+                    <button id="resetToDefaultsBtn" type="button" class="btn-warning" style="font-size: 14px; padding: 10px;">
+                        Reset
+                    </button>
+                </div>
+            </div>
+        </details>
+
+        <!-- Generation button and progress bar -->
+        <button type="button" id="generateBtn" disabled style="margin-top: 20px;">Generate</button>
+        <div class="progress-container" id="progressContainer" style="display: none;">
+            <div class="progress-bar" id="progressBar">0%</div>
+        </div>
+
+        <!-- Displaying the result -->
+        <div class="result-section">
+            <div id="loadingSpinner" class="spinner" style="display: none;"></div>
+
+            <canvas id="resultCanvas" class="zoomable-canvas" style="display: none;"></canvas>
+
+            <p id="placeholderText">The generated image will appear here.</p>
+
+            <!-- Controls for the final result -->
+
+            <div class="btn-row">
+                <button type="button" id="sendToImg2ImgBtn" class="btn-capped btn-strong" style="display: none;">Img2Img</button>
+                <button type="button" id="showOriginalBtn" class="btn-capped btn-neutral" style="display: none;">Original</button>
+                <button type="button" id="downloadBtn" class="btn-capped btn-accent" style="display: none;">Download</button>
+            </div>
+
+            <!-- Sliders for mask compositing. display: flex -->
+            <div id="resultSliders" class="result-sliders" style="display: none;">
+
+                <div class="slider-row">
+                    <label class="slider-label" for="resultBrightness">Brightness: <span id="resultBrightnessVal">0.0</span></label>
+                    <input class="slider-input" type="range" id="resultBrightness" min="-100" max="100" step="0.01" value="0">
+                    <button type="button" class="reset-btn" id="resultBrightnessReset" title="Reset brightness">✕</button>
+                </div>
+
+                <div class="slider-row">
+                    <label class="slider-label" for="resultContrast">Contrast: <span id="resultContrastVal">0.0</span></label>
+                    <input class="slider-input" type="range" id="resultContrast" min="-100" max="100" step="0.01" value="0">
+                    <button type="button" class="reset-btn" id="resultContrastReset" title="Reset contrast">✕</button>
+                </div>
+
+                <details class="advanced-result-spoiler">
+                    <summary>Advanced</summary>
+
+                    <div class="slider-row">
+                        <label class="slider-label" for="maskFeather">Mask feather: <span id="maskFeatherVal">10</span>px</label>
+                        <input class="slider-input" type="range" id="maskFeather" min="0" max="50" step="1" value="10">
+                        <button type="button" class="reset-btn" id="maskFeatherReset" title="Reset mask feather">✕</button>
+                    </div>
+
+                    <div class="slider-row">
+                        <label class="slider-label" for="maskBlur">Mask blur: <span id="maskBlurVal">10</span>px</label>
+                        <input class="slider-input" type="range" id="maskBlur" min="0" max="50" step="1" value="10">
+                        <button type="button" class="reset-btn" id="maskBlurReset" title="Reset mask blur">✕</button>
+                    </div>
+
+                    <div class="slider-row">
+                        <label class="slider-label" for="maskBlend">Result opacity: <span id="maskBlendVal">100</span>%</label>
+                        <input class="slider-input" type="range" id="maskBlend" min="0" max="100" step="1" value="100">
+                        <button type="button" class="reset-btn" id="maskBlendReset" title="Reset result opacity">✕</button>
+                    </div>
+
+                    <div class="switch-row" style="margin-top: 5px;">
+                        <input type="checkbox" id="showDebugCheckbox" class="check-control">
+                        <label for="showDebugCheckbox" class="check-label">
+                            Show debug canvases
+                        </label>
+                    </div>
+                </details>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Lightbox modal viewer -->
+<div id="lightboxOverlay" class="lightbox-overlay" style="display: none;">
+    <img id="lightboxImage" alt="Fullscreen view">
+</div>
+
+<!-- Notes Widget (Draggable Notepad) -->
+<div id="notesWidget">
+    <div id="notesHeader">
+        <h3>Notes</h3>
+        <button id="notesCloseBtn" type="button">&times;</button>
+    </div>
+    <div id="notesContent">
+        <textarea id="notesTextarea" placeholder="Write your notes here..."></textarea>
+    </div>
+</div>
+
+<!-- Save session dialog -->
+<div id="saveSessionDialog" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <h3 class="modal-title">Saving params</h3>
+
+        <div class="checkbox-group">
+            <div class="checkbox-item">
+                <input type="checkbox" id="saveSessionModel" checked>
+                <label for="saveSessionModel">Selected model</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="saveSessionPrompt" checked>
+                <label for="saveSessionPrompt">Prompt</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="saveSessionImg2Img" checked>
+                <label for="saveSessionImg2Img">Img2Img</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="saveSessionDenoiseStrength" checked>
+                <label for="saveSessionDenoiseStrength">Denoise strength</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="saveSessionAdvancedGenerationParams" checked>
+                <label for="saveSessionAdvancedGenerationParams">Generation params</label>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button id="saveSessionCancelBtn" type="button" class="btn-secondary">Cancel</button>
+            <button id="saveSessionSaveBtn" type="button" class="btn-primary">Save</button>
+        </div>
+    </div>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
