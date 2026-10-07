@@ -1,7 +1,7 @@
 import { dom } from '../dom.js';
 import { state } from '../state.js';
 import { apiSelectModel, apiGetCatalog, apiGetStatus } from './api.js';
-import { setSliderValue } from '../utils/misc.js';
+import { setSliderValue, setStatus } from '../utils/misc.js';
 import { updateSizeText } from '../ui/sizeControls.js';
 
 export function initModels() {
@@ -54,9 +54,7 @@ async function checkBackendStatus() {
     const status = await apiGetStatus();
 
     if (status.state === 'running' || status.state === 'idle') {
-      dom.modelStatus.textContent =
-        `Status: Ready. Active model: ${status.serving_model_id || 'Not selected'}`;
-      dom.modelStatus.classList.remove('status-error');
+      setStatus(dom.modelStatus, `Status: Ready. Active model: ${status.serving_model_id || 'Not selected'}`, false);
 
       dom.loadModelBtn.disabled = false;
       if (status.serving_model_id) {
@@ -72,8 +70,7 @@ async function checkBackendStatus() {
       }
     }
   } catch (e) {
-    dom.modelStatus.textContent = 'The generation backend is currently inactive.';
-    dom.modelStatus.classList.add('status-error');
+    setStatus(dom.modelStatus, 'The generation backend is currently inactive.', true);
     console.log(dom.modelStatus.textContent, e);
   }
 }
@@ -89,18 +86,15 @@ export async function onLoadModel() {
     const response = await apiSelectModel(selectedModel);
 
     if (response.ok) {
-      dom.modelStatus.textContent = 'The model has been successfully launched!';
-      dom.modelStatus.classList.remove('status-error');
+      setStatus(dom.modelStatus, 'The model has been successfully launched!', false);
       dom.generateBtn.disabled = false;
       applyModelDefaults(selectedModel);
       updateResolutionsForModel(selectedModel);
     } else {
-      dom.modelStatus.textContent = 'Model activation error.';
-      dom.modelStatus.classList.add('status-error');
+      setStatus(dom.modelStatus, 'Model activation error.', true);
     }
   } catch (e) {
-    dom.modelStatus.textContent = 'Failed to send the activation request.';
-    dom.modelStatus.classList.add('status-error');
+    setStatus(dom.modelStatus, 'Failed to send the activation request.', true);
   } finally {
     dom.loadModelBtn.disabled = false;
   }

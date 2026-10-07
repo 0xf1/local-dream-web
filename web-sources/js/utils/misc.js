@@ -9,6 +9,21 @@ export function debounce(fn, ms) {
 }
 
 /**
+ * Sets the status text element with optional error styling.
+ * @param {HTMLElement} el - The status DOM element.
+ * @param {string} text - The status message to display.
+ * @param {boolean} [isError=false] - Whether to mark as error state.
+ */
+export function setStatus(el, text, isError = false) {
+  el.textContent = text;
+  if (isError) {
+    el.classList.add('status-error');
+  } else {
+    el.classList.remove('status-error');
+  }
+}
+
+/**
  * @param {HTMLCanvasElement} c
  */
 export function clearCanvas(c) {

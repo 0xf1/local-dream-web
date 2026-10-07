@@ -4,6 +4,7 @@ import { apiStopGeneration, apiGenerate, apiSelectModel } from './api.js';
 import { processAndMergeImageLayer } from './imageLayerMerge.js';
 import { generateInpaintBlackWhiteMaskBase64 } from '../canvas/maskBuilder.js';
 import { handleGenerationEvent } from './generationEvents.js';
+import { setStatus } from '../utils/misc.js';
 
 export function initGeneration() {
   dom.generateBtn.addEventListener('click', onGenerateClick);
@@ -138,20 +139,17 @@ async function startStreamingGeneration(payload) {
       dom.generateBtn.textContent = 'Restarting model...';
       dom.generateBtn.classList.remove('btn-stop');
       dom.generateBtn.classList.add('btn-busy');
-      dom.modelStatus.textContent = 'Status: Generation stopped. Restarting engine on the phone...';
+      setStatus(dom.modelStatus, 'Status: Generation stopped. Restarting engine on the phone...', false);
 
       try {
         const response = await apiSelectModel(dom.modelSelect.value);
         if (response.ok) {
-          dom.modelStatus.textContent = 'Status: Ready. The model was automatically restarted after stopping.';
-          dom.modelStatus.classList.remove('status-error');
+          setStatus(dom.modelStatus, 'Status: Ready. The model was automatically restarted after stopping.', false);
         } else {
-          dom.modelStatus.textContent = 'Status: Auto-restart error. Click Activate manually.';
-          dom.modelStatus.classList.add('status-error');
+          setStatus(dom.modelStatus, 'Status: Auto-restart error. Click Activate manually.', true);
         }
       } catch (err) {
-        dom.modelStatus.textContent = 'Status: Failed to contact the phone for auto-restart.';
-        dom.modelStatus.classList.add('status-error');
+        setStatus(dom.modelStatus, 'Status: Failed to contact the phone for auto-restart.', true);
       } finally {
         dom.generateBtn.textContent = 'Generate';
         dom.generateBtn.classList.remove('btn-busy');
