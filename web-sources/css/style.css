@@ -325,6 +325,7 @@ button {
 button:hover:not(:disabled) { background: var(--primary-hover); }
 button:disabled { background: var(--border-strong); color: var(--text-disabled); cursor: not-allowed; }
 .status-text { font-size: 13px; color: var(--accent); margin: 5px 0 0 0; }
+.status-error { color: var(--danger) !important; }
 
 /* Generation progress bar */
 .progress-container { background: var(--surface-input); border-radius: 6px; margin: 15px 0; overflow: hidden; }

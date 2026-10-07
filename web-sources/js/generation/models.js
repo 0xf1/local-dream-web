@@ -56,6 +56,7 @@ async function checkBackendStatus() {
     if (status.state === 'running' || status.state === 'idle') {
       dom.modelStatus.textContent =
         `Status: Ready. Active model: ${status.serving_model_id || 'Not selected'}`;
+      dom.modelStatus.classList.remove('status-error');
 
       dom.loadModelBtn.disabled = false;
       if (status.serving_model_id) {
@@ -72,6 +73,7 @@ async function checkBackendStatus() {
     }
   } catch (e) {
     dom.modelStatus.textContent = 'The generation backend is currently inactive.';
+    dom.modelStatus.classList.add('status-error');
     console.log(dom.modelStatus.textContent, e);
   }
 }
@@ -88,14 +90,17 @@ export async function onLoadModel() {
 
     if (response.ok) {
       dom.modelStatus.textContent = 'The model has been successfully launched!';
+      dom.modelStatus.classList.remove('status-error');
       dom.generateBtn.disabled = false;
       applyModelDefaults(selectedModel);
       updateResolutionsForModel(selectedModel);
     } else {
       dom.modelStatus.textContent = 'Model activation error.';
+      dom.modelStatus.classList.add('status-error');
     }
   } catch (e) {
     dom.modelStatus.textContent = 'Failed to send the activation request.';
+    dom.modelStatus.classList.add('status-error');
   } finally {
     dom.loadModelBtn.disabled = false;
   }

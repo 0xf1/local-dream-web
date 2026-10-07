@@ -144,11 +144,14 @@ async function startStreamingGeneration(payload) {
         const response = await apiSelectModel(dom.modelSelect.value);
         if (response.ok) {
           dom.modelStatus.textContent = 'Status: Ready. The model was automatically restarted after stopping.';
+          dom.modelStatus.classList.remove('status-error');
         } else {
           dom.modelStatus.textContent = 'Status: Auto-restart error. Click Activate manually.';
+          dom.modelStatus.classList.add('status-error');
         }
       } catch (err) {
         dom.modelStatus.textContent = 'Status: Failed to contact the phone for auto-restart.';
+        dom.modelStatus.classList.add('status-error');
       } finally {
         dom.generateBtn.textContent = 'Generate';
         dom.generateBtn.classList.remove('btn-busy');
