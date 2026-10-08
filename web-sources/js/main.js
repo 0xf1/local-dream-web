@@ -14,7 +14,6 @@ import { initSizeControls } from './ui/sizeControls.js';
 import { initTokens } from './generation/tokens.js';
 import { initResultControls } from './ui/resultControls.js';
 import { initDebug } from './ui/debug.js';
-import { initSessionControls } from './ui/sessionControls.js';
 import { initNotes } from './ui/notes.js';
 
 function bindSliderLabels() {
@@ -49,7 +48,6 @@ function init() {
   initTokens();
   initResultControls();
   initDebug();
-  initSessionControls();
   initNotes();
 
   // Asynchronous stage - network, directory, status

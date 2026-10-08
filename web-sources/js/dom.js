@@ -24,9 +24,6 @@ export const dom = {
   uploadImgBtn:  (/** @type {HTMLButtonElement} */ (document.getElementById('uploadImgBtn'))),
   uploadRefImgBtn:  (/** @type {HTMLButtonElement} */ (document.getElementById('uploadRefImgBtn'))),
   refImages:  (/** @type {HTMLDivElement} */ (document.getElementById('refImagesContainer'))),
-  saveSessionShowDialog:  (/** @type {HTMLButtonElement} */ (document.getElementById('saveSessionShowDialog'))),
-  loadSessionBtn:  (/** @type {HTMLButtonElement} */ (document.getElementById('loadSessionBtn'))),
-  loadSessionFile:   (/** @type {HTMLInputElement} */ (document.getElementById('loadSessionFile'))),
   clearImgBtn:   (/** @type {HTMLButtonElement} */ (document.getElementById('clearImgBtn'))),
   lightboxOverlay: (/** @type {HTMLDivElement} */ (document.getElementById('lightboxOverlay'))),
   lightboxImage:   (/** @type {HTMLImageElement} */ (document.getElementById('lightboxImage'))),
@@ -103,16 +100,6 @@ export const dom = {
     widthSlider:          (/** @type {HTMLInputElement} */ (document.getElementById('widthSlider'))),
     heightSlider:         (/** @type {HTMLInputElement} */ (document.getElementById('heightSlider'))),
   },
-
-  // Saving session dialog
-  saveSessionDialog: (/** @type {HTMLDivElement} */ (document.getElementById('saveSessionDialog'))),
-  saveSessionModel: (/** @type {HTMLInputElement} */ (document.getElementById('saveSessionModel'))),
-  saveSessionPrompt: (/** @type {HTMLInputElement} */ (document.getElementById('saveSessionPrompt'))),
-  saveSessionImg2Img: (/** @type {HTMLInputElement} */ (document.getElementById('saveSessionImg2Img'))),
-  saveSessionDenoiseStrength: (/** @type {HTMLInputElement} */ (document.getElementById('saveSessionDenoiseStrength'))),
-  saveSessionAdvancedGenerationParams: (/** @type {HTMLInputElement} */ (document.getElementById('saveSessionAdvancedGenerationParams'))),
-  saveSessionSaveBtn:  (/** @type {HTMLButtonElement} */ (document.getElementById('saveSessionSaveBtn'))),
-  saveSessionCancelBtn:  (/** @type {HTMLButtonElement} */ (document.getElementById('saveSessionCancelBtn'))),
 
   // Notes widget
   notesBtn:      (/** @type {HTMLButtonElement} */ (document.getElementById('notesBtn'))),

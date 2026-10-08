@@ -41,7 +41,6 @@ LocalDreamWeb/
         ├── canvas/          # Canvas editing tools
         ├── editor/          # Drawing, layers, filters
         ├── generation/      # AI model integration & API calls
-        ├── persistence/     # Session save/load utilities
         └── ui/              # UI components and controls
 ```
 

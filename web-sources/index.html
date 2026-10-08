@@ -15,14 +15,6 @@
         <h1>Local Dream Web</h1>
 
         <div class="header-actions">
-            <button id="saveSessionShowDialog" type="button" class="link-button" hidden>
-                [ Save session ]
-            </button>
-            <button id="loadSessionBtn" type="button" class="link-button" hidden>
-                [ Load session ]
-            </button>
-            <input id="loadSessionFile" type="file" accept="application/json,.json" hidden>
-
             <button id="notesBtn" type="button" class="link-button">
                 [ Notes ]
             </button>
@@ -290,40 +282,6 @@
     </div>
 </div>
 
-<!-- Save session dialog -->
-<div id="saveSessionDialog" class="modal-overlay" style="display: none;">
-    <div class="modal-content">
-        <h3 class="modal-title">Saving params</h3>
-
-        <div class="checkbox-group">
-            <div class="checkbox-item">
-                <input type="checkbox" id="saveSessionModel" checked>
-                <label for="saveSessionModel">Selected model</label>
-            </div>
-            <div class="checkbox-item">
-                <input type="checkbox" id="saveSessionPrompt" checked>
-                <label for="saveSessionPrompt">Prompt</label>
-            </div>
-            <div class="checkbox-item">
-                <input type="checkbox" id="saveSessionImg2Img" checked>
-                <label for="saveSessionImg2Img">Img2Img</label>
-            </div>
-            <div class="checkbox-item">
-                <input type="checkbox" id="saveSessionDenoiseStrength" checked>
-                <label for="saveSessionDenoiseStrength">Denoise strength</label>
-            </div>
-            <div class="checkbox-item">
-                <input type="checkbox" id="saveSessionAdvancedGenerationParams" checked>
-                <label for="saveSessionAdvancedGenerationParams">Generation params</label>
-            </div>
-        </div>
-
-        <div class="modal-actions">
-            <button id="saveSessionCancelBtn" type="button" class="btn-secondary">Cancel</button>
-            <button id="saveSessionSaveBtn" type="button" class="btn-primary">Save</button>
-        </div>
-    </div>
-</div>
 
 <script type="module" src="js/main.js"></script>
 </body>
