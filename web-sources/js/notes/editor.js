@@ -5,6 +5,7 @@
 import { dom } from '../dom.js';
 import { apiReadFile, apiCreateFile, apiUpdateFile } from './api.js';
 import { getCurrentFile, setCurrentFile, goBackToList } from './widget.js';
+import { loadFileList } from './file-list.js';
 
 /**
  * Opens an existing file in the editor.
@@ -61,6 +62,7 @@ export async function saveCurrentFile() {
     }
     setCurrentFile(filename);
     goBackToList();
+    await loadFileList();
   } catch (error) {
     console.error('Error saving file:', error);
     alert('Error saving file: ' + error.message);
@@ -82,6 +84,7 @@ export async function createNewFile() {
     await apiCreateFile(filename, content);
     setCurrentFile(filename);
     goBackToList();
+    await loadFileList();
   } catch (error) {
     console.error('Error creating file:', error);
     alert('Error creating file: ' + error.message);
