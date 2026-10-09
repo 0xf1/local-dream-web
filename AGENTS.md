@@ -1,5 +1,8 @@
 # Project Rules & Architecture Guidelines
 
+## Language & Code Style
+- **English Only**: Write all code, comments, docstrings, variable names, and documentation strictly in English.
+
 ## Dev environment tips
 - NEVER include directories `venv/` and `__pycache__/` in file listings.
 - Frontend script located in `web-sources/` directory.
