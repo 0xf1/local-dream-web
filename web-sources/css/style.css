@@ -714,6 +714,37 @@ canvas.zoomable-canvas {
     color: var(--danger);
 }
 
+/* Notes header actions container */
+.notes-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    pointer-events: auto;
+    touch-action: auto;
+    cursor: default;
+}
+
+#notesAddBtn,
+#notesCloseBtn {
+    pointer-events: auto;
+}
+
+#notesAddBtn {
+    background: var(--accent);
+    border: none;
+    color: var(--text-inverse);
+    font-size: 16px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: auto;
+    line-height: 1;
+}
+
+#notesAddBtn:hover {
+    background: var(--accent-hover);
+}
+
 #notesContent {
     padding: 15px;
     display: flex;
@@ -769,27 +800,6 @@ canvas.zoomable-canvas {
 .notes-file-delete:hover {
     background: var(--danger);
     color: var(--text-bright);
-}
-
-/* Create button container */
-.notes-create-container {
-    padding: 8px 0;
-    text-align: center;
-}
-
-#notesCreateBtn {
-    background: var(--accent);
-    border: none;
-    color: var(--text-inverse);
-    font-size: 14px;
-    padding: 8px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    width: auto;
-}
-
-#notesCreateBtn:hover {
-    background: var(--accent-hover);
 }
 
 /* Empty state */

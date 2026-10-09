@@ -113,8 +113,7 @@ export const dom = {
   notesSaveBtn:  (/** @type {HTMLButtonElement} */ (document.getElementById('notesSaveBtn'))),
   notesBackBtn:  (/** @type {HTMLButtonElement} */ (document.getElementById('notesBackBtn'))),
   notesEmptyState: (/** @type {HTMLDivElement} */ (document.getElementById('notesEmptyState'))),
-  notesCreateBtn: (/** @type {HTMLButtonElement} */ (document.getElementById('notesCreateBtn'))),
-  notesCreateBtnContainer: (/** @type {HTMLDivElement} */ (document.getElementById('notesCreateBtnContainer'))),
+  notesAddBtn:   (/** @type {HTMLButtonElement} */ (document.getElementById('notesAddBtn'))),
 };
 
 // Magnifier is created dynamically

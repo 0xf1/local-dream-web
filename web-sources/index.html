@@ -275,13 +275,13 @@
 <div id="notesWidget">
     <div id="notesHeader">
         <h3>Notes</h3>
-        <button id="notesCloseBtn" type="button">&times;</button>
+        <div class="notes-header-actions">
+            <button id="notesAddBtn" type="button" title="New file">+</button>
+            <button id="notesCloseBtn" type="button">&times;</button>
+        </div>
     </div>
     <div id="notesContent">
         <div id="notesFileList" class="notes-file-list"></div>
-        <div id="notesCreateBtnContainer" class="notes-create-container">
-            <button id="notesCreateBtn" type="button">+ New file</button>
-        </div>
         <div id="notesEditor" class="notes-editor" style="display: none;">
             <div class="notes-editor-header">
                 <input type="text" id="notesFilename" class="notes-filename-input" placeholder="filename">

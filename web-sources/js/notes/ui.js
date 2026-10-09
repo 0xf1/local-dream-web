@@ -17,7 +17,11 @@ export function initNotes() {
 
   dom.notesBtn.addEventListener('click', toggleWidget);
   dom.notesCloseBtn.addEventListener('click', hideWidget);
-  dom.notesCreateBtn.addEventListener('click', showEditor);
+  if (dom.notesAddBtn) {
+    dom.notesAddBtn.addEventListener('click', showEditor);
+  } else {
+    console.warn('notesAddBtn not found in DOM');
+  }
   dom.notesSaveBtn.addEventListener('click', saveCurrentFile);
   dom.notesBackBtn.addEventListener('click', goBackToList);
 
@@ -84,8 +88,8 @@ async function openFile(filename) {
     dom.notesTextarea.value = content;
     dom.notesFileList.style.display = 'none';
     dom.notesEmptyState.style.display = 'none';
-    dom.notesCreateBtnContainer.style.display = 'none';
     dom.notesEditor.style.display = 'block';
+    dom.notesAddBtn.style.display = 'none';
   } catch (error) {
     console.error('Error opening file:', error);
     alert('Error opening file: ' + error.message);
@@ -115,8 +119,8 @@ function showEditor() {
   dom.notesTextarea.value = '';
   dom.notesFileList.style.display = 'none';
   dom.notesEmptyState.style.display = 'none';
-  dom.notesCreateBtnContainer.style.display = 'none';
   dom.notesEditor.style.display = 'block';
+  dom.notesAddBtn.style.display = 'none';
 }
 
 async function saveCurrentFile() {
@@ -159,7 +163,7 @@ function goBackToList() {
   dom.notesFilename.value = '';
   dom.notesTextarea.value = '';
   dom.notesEditor.style.display = 'none';
-  dom.notesCreateBtnContainer.style.display = 'block';
+  dom.notesAddBtn.style.display = 'block';
   loadFileList();
 }
 
@@ -171,7 +175,7 @@ function initDrag() {
   let dragOffsetY = 0;
 
   dom.notesHeader.addEventListener('pointerdown', (event) => {
-    if (dom.notesCloseBtn.contains(event.target)) return;
+    if (dom.notesCloseBtn.contains(event.target) || dom.notesAddBtn.contains(event.target)) return;
     if (event.button !== 0) return;
     activePointerId = event.pointerId;
     dom.notesHeader.setPointerCapture(activePointerId);
