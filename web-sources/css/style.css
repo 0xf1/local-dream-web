@@ -666,6 +666,7 @@ canvas.zoomable-canvas {
     right: 20px;
     width: 350px;
     max-width: calc(100vw - 40px);
+    max-height: 50vh;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -715,6 +716,168 @@ canvas.zoomable-canvas {
 
 #notesContent {
     padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+}
+
+/* File list */
+.notes-file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.notes-file-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--surface-input);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.notes-file-item:hover {
+    background: var(--surface-raised);
+    border-color: var(--border-hover);
+}
+
+.notes-file-name {
+    flex: 1;
+    color: var(--text);
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.notes-file-delete {
+    background: var(--danger-deep);
+    border: none;
+    color: var(--text);
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: auto;
+}
+
+.notes-file-delete:hover {
+    background: var(--danger);
+    color: var(--text-bright);
+}
+
+/* Create button container */
+.notes-create-container {
+    padding: 8px 0;
+    text-align: center;
+}
+
+#notesCreateBtn {
+    background: var(--accent);
+    border: none;
+    color: var(--text-inverse);
+    font-size: 14px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    width: auto;
+}
+
+#notesCreateBtn:hover {
+    background: var(--accent-hover);
+}
+
+/* Empty state */
+.notes-empty-state {
+    text-align: center;
+    padding: 20px 10px;
+    color: var(--text-muted);
+}
+
+.notes-empty-state p {
+    margin: 0 0 15px 0;
+    font-size: 14px;
+}
+
+.notes-empty-state button {
+    background: var(--accent);
+    border: none;
+    color: var(--text-inverse);
+    font-size: 14px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    width: auto;
+}
+
+.notes-empty-state button:hover {
+    background: var(--accent-hover);
+}
+
+/* Editor */
+.notes-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.notes-editor-header {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.notes-filename-input {
+    width: 100%;
+    background: var(--surface-input);
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 14px;
+    padding: 8px 12px;
+    box-sizing: border-box;
+}
+
+.notes-filename-input:focus {
+    border-color: var(--accent);
+    outline: none;
+}
+
+.notes-editor-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.notes-editor-actions button {
+    background: var(--surface-input);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 14px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    width: auto;
+    flex: 1;
+}
+
+.notes-editor-actions button:hover {
+    background: var(--surface-raised);
+    border-color: var(--border-hover);
+}
+
+#notesSaveBtn {
+    background: var(--accent);
+    border: none;
+    color: var(--text-inverse);
+}
+
+#notesSaveBtn:hover {
+    background: var(--accent-hover);
 }
 
 #notesTextarea {

@@ -1,9 +1,27 @@
-import os
+﻿import os
+import json
 import threading
 import subprocess
 import time
 import requests
 from flask import Flask, request, Response, send_from_directory, abort
+
+# Notes directory
+NOTES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Notes')
+os.makedirs(NOTES_DIR, exist_ok=True)
+
+# Forbidden characters in Windows filenames
+FORBIDDEN_CHARS = '<>:"|?*/\\'
+
+def validate_filename(filename):
+    """Validates filename for filesystem safety. Returns error message or None."""
+    if not filename:
+        return "Filename required"
+    for char in FORBIDDEN_CHARS:
+        if char in filename:
+            return f"Invalid filename: character '{char}' is not allowed in filenames"
+    return None
+
 
 try:
     from config_user import (
@@ -84,20 +102,16 @@ def control_status():
 def generation_generate():
     """Proxies the POST request for generation. Supports data streaming for SSE."""
     try:
-        # Execute the request with stream=True to read the generation server's response line by line.
         res = requests.post(
             f"{GENERATION_URL}/generate",
             data=request.get_data(),
             headers={"Content-Type": "application/json"},
             stream=True
         )
-        
-        # Generator for reading data from a socket as it arrives
         def generate_stream():
             for chunk in res.iter_content(chunk_size=4096):
                 if chunk:
                     yield chunk
-
         content_type = res.headers.get('Content-Type', 'text/event-stream')
         return Response(generate_stream(), status=res.status_code, content_type=content_type)
     except Exception as e:
@@ -126,6 +140,152 @@ def serve_index():
         abort(404, description="File index.html not found")
 
 
+@app.route("/api/notes", methods=["GET"])
+def notes_list():
+    """Returns a list of all text files in the Notes directory."""
+    try:
+        files = [f.replace(".txt", "") for f in os.listdir(NOTES_DIR) if f.endswith(".txt")]
+        return json.dumps({"files": files})
+    except Exception as e:
+        return json.dumps({"error": str(e)}), 500
+
+@app.route("/api/notes/create", methods=["POST"])
+def notes_create():
+    """Creates a new text file in the Notes directory."""
+    try:
+        data = request.get_json()
+        filename = data.get("filename", "")
+        if not filename:
+            return json.dumps({"error": "Invalid filename"}), 400
+        # Ensure .txt extension is always added
+        if not filename.endswith(".txt"):
+            filename = filename + ".txt"
+        filepath = os.path.join(NOTES_DIR, filename)
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write(data.get("content", ""))
+        return json.dumps({"success": True})
+    except Exception as e:
+        return json.dumps({"error": str(e)}), 500
+
+@app.route("/api/notes/read", methods=["POST"])
+def notes_read():
+    """Reads the content of a text file from the Notes directory."""
+    try:
+        data = request.get_json()
+        filename = data.get("filename", "")
+        if not filename:
+            return json.dumps({"error": "Filename required"}), 400
+        # Validate filename for filesystem safety
+        error = validate_filename(filename)
+        if error:
+            return json.dumps({"error": error}), 400
+        # Ensure .txt extension is always added
+        if not filename.endswith(".txt"):
+            filename = filename + ".txt"
+        filepath = os.path.join(NOTES_DIR, filename)
+        with open(filepath, "r", encoding="utf-8") as f:
+            content = f.read()
+        return json.dumps({"content": content})
+    except Exception as e:
+        return json.dumps({"error": str(e)}), 500
+
+@app.route("/api/notes/check", methods=["POST"])
+def notes_check():
+    """Checks if a file exists in the Notes directory."""
+    try:
+        data = request.get_json()
+        filename = data.get("filename", "")
+        if not filename:
+            return json.dumps({"error": "Filename required"}), 400
+        # Validate filename for filesystem safety
+        error = validate_filename(filename)
+        if error:
+            return json.dumps({"error": error}), 400
+        # Ensure .txt extension is always added
+        if not filename.endswith(".txt"):
+            filename = filename + ".txt"
+        filepath = os.path.join(NOTES_DIR, filename)
+        exists = os.path.exists(filepath)
+        return json.dumps({"exists": exists})
+    except Exception as e:
+        return json.dumps({"error": str(e)}), 500
+
+@app.route("/api/notes/update", methods=["POST"])
+def notes_update():
+    """Updates the content of a text file in the Notes directory."""
+    try:
+        data = request.get_json()
+        filename = data.get("filename", "")
+        content = data.get("content", "")
+        overwrite = data.get("overwrite", False)
+        if not filename:
+            return json.dumps({"error": "Filename required"}), 400
+        # Validate filename for filesystem safety
+        error = validate_filename(filename)
+        if error:
+            return json.dumps({"error": error}), 400
+        # Ensure .txt extension is always added
+        if not filename.endswith(".txt"):
+            filename = filename + ".txt"
+        filepath = os.path.join(NOTES_DIR, filename)
+        # Check if file exists and user hasn't confirmed overwrite
+        if os.path.exists(filepath) and not overwrite:
+            return json.dumps({"error": "File already exists", "exists": True}), 409
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write(content)
+        return json.dumps({"success": True})
+    except Exception as e:
+        return json.dumps({"error": str(e)}), 500
+
+@app.route("/api/notes/rename", methods=["POST"])
+def notes_rename():
+    """Renames a text file in the Notes directory."""
+    try:
+        data = request.get_json()
+        old_name = data.get("old_name", "")
+        new_name = data.get("new_name", "")
+        if not old_name or not new_name:
+            return json.dumps({"error": "Both old_name and new_name required"}), 400
+        # Validate filenames for filesystem safety
+        error = validate_filename(old_name)
+        if error:
+            return json.dumps({"error": error}), 400
+        error = validate_filename(new_name)
+        if error:
+            return json.dumps({"error": error}), 400
+        # Ensure .txt extension is always added
+        if not old_name.endswith(".txt"):
+            old_name = old_name + ".txt"
+        if not new_name.endswith(".txt"):
+            new_name = new_name + ".txt"
+        old_path = os.path.join(NOTES_DIR, old_name)
+        new_path = os.path.join(NOTES_DIR, new_name)
+        os.rename(old_path, new_path)
+        return json.dumps({"success": True})
+    except Exception as e:
+        return json.dumps({"error": str(e)}), 500
+
+@app.route("/api/notes/delete", methods=["POST"])
+def notes_delete():
+    """Deletes a text file from the Notes directory."""
+    try:
+        data = request.get_json()
+        filename = data.get("filename", "")
+        if not filename:
+            return json.dumps({"error": "Filename required"}), 400
+        # Validate filename for filesystem safety
+        error = validate_filename(filename)
+        if error:
+            return json.dumps({"error": error}), 400
+        # Ensure .txt extension is always added
+        if not filename.endswith(".txt"):
+            filename = filename + ".txt"
+        filepath = os.path.join(NOTES_DIR, filename)
+        os.remove(filepath)
+        return json.dumps({"success": True})
+    except Exception as e:
+        return json.dumps({"error": str(e)}), 500
+
 @app.route('/<path:path>')
 def serve_static(path):
     """
@@ -145,7 +305,7 @@ def open_browser_via_os(port):
     time.sleep(1.5)
     url = f"http://localhost:{port}/"
     chrome_path = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
-    subprocess.Popen([chrome_path, url])    
+    subprocess.Popen([chrome_path, url])
 
 if __name__ == '__main__':
     # Start a background thread to open the browser

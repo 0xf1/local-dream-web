@@ -106,7 +106,15 @@ export const dom = {
   notesWidget:   (/** @type {HTMLDivElement} */ (document.getElementById('notesWidget'))),
   notesHeader:   (/** @type {HTMLDivElement} */ (document.getElementById('notesHeader'))),
   notesCloseBtn: (/** @type {HTMLButtonElement} */ (document.getElementById('notesCloseBtn'))),
+  notesFileList: (/** @type {HTMLDivElement} */ (document.getElementById('notesFileList'))),
+  notesEditor:   (/** @type {HTMLDivElement} */ (document.getElementById('notesEditor'))),
+  notesFilename: (/** @type {HTMLInputElement} */ (document.getElementById('notesFilename'))),
   notesTextarea: (/** @type {HTMLTextAreaElement} */ (document.getElementById('notesTextarea'))),
+  notesSaveBtn:  (/** @type {HTMLButtonElement} */ (document.getElementById('notesSaveBtn'))),
+  notesBackBtn:  (/** @type {HTMLButtonElement} */ (document.getElementById('notesBackBtn'))),
+  notesEmptyState: (/** @type {HTMLDivElement} */ (document.getElementById('notesEmptyState'))),
+  notesCreateBtn: (/** @type {HTMLButtonElement} */ (document.getElementById('notesCreateBtn'))),
+  notesCreateBtnContainer: (/** @type {HTMLDivElement} */ (document.getElementById('notesCreateBtnContainer'))),
 };
 
 // Magnifier is created dynamically

@@ -278,7 +278,23 @@
         <button id="notesCloseBtn" type="button">&times;</button>
     </div>
     <div id="notesContent">
-        <textarea id="notesTextarea" placeholder="Write your notes here..."></textarea>
+        <div id="notesFileList" class="notes-file-list"></div>
+        <div id="notesCreateBtnContainer" class="notes-create-container">
+            <button id="notesCreateBtn" type="button">+ New file</button>
+        </div>
+        <div id="notesEditor" class="notes-editor" style="display: none;">
+            <div class="notes-editor-header">
+                <input type="text" id="notesFilename" class="notes-filename-input" placeholder="filename">
+                <div class="notes-editor-actions">
+                    <button id="notesSaveBtn" type="button">Save</button>
+                    <button id="notesBackBtn" type="button">Back</button>
+                </div>
+            </div>
+            <textarea id="notesTextarea" placeholder="Write your notes here..."></textarea>
+        </div>
+        <div id="notesEmptyState" class="notes-empty-state">
+            <p>No files yet. Create a new file to get started.</p>
+        </div>
     </div>
 </div>
 
