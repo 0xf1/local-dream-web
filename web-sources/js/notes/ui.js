@@ -32,11 +32,12 @@ function toggleWidget() {
   const isVisible = dom.notesWidget.classList.contains(VISIBLE_CLASS);
   dom.notesWidget.classList.toggle(VISIBLE_CLASS, !isVisible);
   if (!isVisible) {
-    loadFileList();
+    goBackToList();
   }
 }
 
 function hideWidget() {
+  goBackToList();
   dom.notesWidget.classList.remove(VISIBLE_CLASS);
 }
 
